@@ -38,7 +38,7 @@ const generateRandomString = function () {
   }
 };
 
-console.log(generateRandomString());
+// console.log(generateRandomString());
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -67,6 +67,13 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL],
   };
   res.render("urls_show", templateVars);
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const newLongURL = req.body.longURL;
+  urlDatabase[shortURL] = newLongURL;
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
