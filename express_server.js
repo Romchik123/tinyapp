@@ -16,28 +16,49 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-const generateRandomString = function() {
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+const helperGetUserByEmail = (email) => {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+};
+
+const generateRandomString = function () {
   const arr = ["d87s8d", "df923j", "345gfg", "345gdf", "567ytr", "34fdsf"];
 
   let randomNum = Math.random() * 6;
   let roundNumber = Math.floor(randomNum);
 
   switch (roundNumber) {
-  case 0:
-    return arr[0];
-  case 1:
-    return arr[1];
-  case 2:
-    return arr[2];
-  case 3:
-    return arr[3];
-  case 4:
-    return arr[4];
-  case 5:
-    return arr[5];
+    case 0:
+      return arr[0];
+    case 1:
+      return arr[1];
+    case 2:
+      return arr[2];
+    case 3:
+      return arr[3];
+    case 4:
+      return arr[4];
+    case 5:
+      return arr[5];
 
-  default:
-    break;
+    default:
+      break;
   }
 };
 
@@ -102,6 +123,38 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  res.render("urls_register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  let newUserId = generateRandomString();
+
+  const newUser = {
+    id: newUserId,
+    email: req.body.email,
+    password: req.body.password,
+  };
+
+  if (newUser.email === "") {
+    return res.status(400).send("<h1>Please try again</h1>");
+  }
+
+  if (newUser.password === "") {
+    return res.status(400).send("<h1>Please try again</h1>");
+  }
+
+  if (helperGetUserByEmail(newUser.email)) {
+    return res.status(400).send("<h1>Email exist! 400 status code</h1>");
+  }
+
+  users[newUserId] = newUser;
+  res.cookie("username", newUser.email);
+
   res.redirect("/urls");
 });
 
