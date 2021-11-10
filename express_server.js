@@ -13,7 +13,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-const generateRandomString = function () {
+const generateRandomString = function() {
   const arr = ["d87s8d", "df923j", "345gfg", "345gdf", "567ytr", "34fdsf"];
 
   let randomNum = Math.random() * 6;
