@@ -29,12 +29,18 @@
     </form>
 
     <% } else { %>
-    <form method="POST" action="/login">
+    <a href="http://localhost:8080/login"
+      ><button class="btn btn-success btn-outline-dark">Login</button></a
+    >
+    <a href="http://localhost:8080/register"
+      ><button class="btn btn-success btn-outline-dark">Register</button></a
+    >
+    <!-- <form method="POST" action="/login">
       <input type="text" name="username" placeholder="Username" />
       <button class="btn btn-success btn-outline-dark" type="submit">
         Login
       </button>
-    </form>
+    </form> -->
     <% } %>
   </nav>
 </header>

@@ -116,10 +116,51 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+app.get("/login", (req, res) => {
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  res.render("urls_login", templateVars);
 });
+
+
+
+
+
+
+app.post("/login", (req, res) => {
+  let newUserId = generateRandomString();
+
+  const newUser = {
+    id: newUserId,
+    email: req.body.email,
+    password: req.body.password,
+  };
+
+  if (newUser.email === "") {
+    return res.status(400).send("<h1>Please try again</h1>");
+  }
+
+  if (newUser.password === "") {
+    return res.status(400).send("<h1>Please try again</h1>");
+  }
+
+  if (helperGetUserByEmail(newUser.email)) {
+    res.cookie("username", newUser.email);
+    // return res.status(400).send("<h1>Email exist! 400 status code</h1>");
+  }
+
+  // users[newUserId] = newUser;
+
+  res.redirect("/login");
+});
+
+
+
+
+
+
+
+
+
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username", req.body.username);
@@ -153,7 +194,8 @@ app.post("/register", (req, res) => {
   }
 
   users[newUserId] = newUser;
-  res.cookie("username", newUser.email);
+  // res.cookie("username", newUser.email);
+  res.cookie("user_id", newUser.email);
 
   res.redirect("/urls");
 });
