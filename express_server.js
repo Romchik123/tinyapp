@@ -21,6 +21,16 @@ const urlDatabase = {
   },
 };
 
+const urlsForUser = (id) => {
+  let urlPair = {};
+  for (const [key, value] of Object.entries(urlDatabase)) {
+    if (id === value.userID) {
+      urlPair[key] = value.longURL;
+    }
+  }
+  return urlPair;
+};
+
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -82,14 +92,20 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
-  const templateVars = { urls: urlDatabase, user };
+  const templateVars = { urls: urlsForUser(userId), user };
+  console.log(templateVars);
+  console.log(urlDatabase);
 
   res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   let newShortUrl = generateRandomString();
-  urlDatabase[newShortUrl] = req.body.longURL;
+  urlDatabase[newShortUrl] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"],
+  };
+
   res.redirect(`/urls/${newShortUrl}`);
 });
 
@@ -109,27 +125,42 @@ app.get("/urls/:shortURL", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
 
+  if (!userId) {
+    return res.redirect("/login");
+  }
+
+  const urlsBelongsToUsers = urlDatabase[req.params.shortURL].userID === userId;
+
+  if (!urlsBelongsToUsers) {
+    return res.send("This URL doesn't belong to you!");
+  }
+
   const templateVars = {
     shortURL: req.params.shortURL,
+
     longURL: urlDatabase[req.params.shortURL]["longURL"],
     user,
   };
+
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  let newShortUrl = generateRandomString();
-
   const shortURL = req.params.shortURL;
   const newLongURL = req.body.longURL;
-  urlDatabase[shortURL] = newLongURL;
 
-  urlDatabase[shortURL] = { longURL: newLongURL, userID: newShortUrl };
+  urlDatabase[shortURL] = {
+    longURL: newLongURL,
+    userID: req.cookies["user_id"],
+  };
   res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  console.log("1", urlDatabase[req.params.shortURL]);
+  console.log("2", urlDatabase);
+
+  const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
@@ -165,6 +196,7 @@ app.post("/login", (req, res) => {
   }
 
   res.cookie("user_id", user.id);
+
   res.redirect("/urls");
 });
 
@@ -203,8 +235,8 @@ app.post("/register", (req, res) => {
   }
 
   users[newUserId] = newUser;
-  res.cookie("user_id", newUser.id);
-  res.redirect("/urls");
+
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
