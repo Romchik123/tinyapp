@@ -11,8 +11,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -36,7 +42,7 @@ const helperGetUserByEmail = (email) => {
   }
 };
 
-const generateRandomString = function() {
+const generateRandomString = function () {
   const arr = ["d87s8d", "df923j", "345gfg", "345gdf", "567ytr", "34fdsf"];
 
   let randomNum = Math.random() * 6;
@@ -81,10 +87,20 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.post("/urls", (req, res) => {
+  let newShortUrl = generateRandomString();
+  urlDatabase[newShortUrl] = req.body.longURL;
+  res.redirect(`/urls/${newShortUrl}`);
+});
+
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { user };
+
+  if (user === undefined) {
+    return res.redirect("/login");
+  }
 
   res.render("urls_new", templateVars);
 });
@@ -95,23 +111,21 @@ app.get("/urls/:shortURL", (req, res) => {
 
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL]["longURL"],
     user,
   };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
+  let newShortUrl = generateRandomString();
+
   const shortURL = req.params.shortURL;
   const newLongURL = req.body.longURL;
   urlDatabase[shortURL] = newLongURL;
-  res.redirect("/urls");
-});
 
-app.post("/urls", (req, res) => {
-  let newShortUrl = generateRandomString();
-  urlDatabase[newShortUrl] = req.body.longURL;
-  res.redirect(`/urls/${newShortUrl}`);
+  urlDatabase[shortURL] = { longURL: newLongURL, userID: newShortUrl };
+  res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
