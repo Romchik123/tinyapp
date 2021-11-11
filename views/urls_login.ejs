@@ -20,13 +20,17 @@
 
   <body>
     <%- include('partials/_header') %>
-    <form method="POST" action="/login">
-      <label>Email:</label><br>
-      <input type="email" name="email"/><br>
-      <label>Password:</label><br>
-      <input type="password" name="password" /><br>
-      <button type="submit">Submit</button>
-    </form>
+    <h3>Login</h3>
+    <div class="form-group">
+      <form method="POST" action="/login">
+        <label>Email:</label><br />
+        <input type="email" name="email" /><br />
+        <label>Password:</label><br />
+        <input type="password" name="password" /><br /><br />
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
+    </div>
+
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
