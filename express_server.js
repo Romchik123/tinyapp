@@ -7,6 +7,13 @@ const PORT = 8080; // default port 8080
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+
+const bcrypt = require('bcryptjs');
+
+
+
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
@@ -93,8 +100,6 @@ app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { urls: urlsForUser(userId), user };
-  console.log(templateVars);
-  console.log(urlDatabase);
 
   res.render("urls_index", templateVars);
 });
@@ -157,9 +162,6 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log("1", urlDatabase[req.params.shortURL]);
-  console.log("2", urlDatabase);
-
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
@@ -191,13 +193,12 @@ app.post("/login", (req, res) => {
     return res.status(403).send("<h1>Email doesn't correct</h1>");
   }
 
-  if (user.password !== body.password) {
-    return res.status(403).send("<h1>Password doesn't correct</h1>");
+  if (bcrypt.compareSync(body.password, user.password)) {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    return res.status(403).send("<h1>Password is incorrect</h1>");
   }
-
-  res.cookie("user_id", user.id);
-
-  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
@@ -211,13 +212,20 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+
+
+
+
+
 app.post("/register", (req, res) => {
   let newUserId = generateRandomString();
+
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
   const newUser = {
     id: newUserId,
     email: req.body.email,
-    password: req.body.password,
+    password: hashedPassword,
   };
 
   if (newUser.email === "") {
@@ -233,6 +241,8 @@ app.post("/register", (req, res) => {
       .status(400)
       .send("<h1>Email exists already! 400 status code</h1>");
   }
+
+  
 
   users[newUserId] = newUser;
 
