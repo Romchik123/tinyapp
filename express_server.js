@@ -1,15 +1,20 @@
+// Require Section ::
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
-
 const express = require("express");
-
 const { helperGetUserByEmail } = require("./helpers");
+const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
+
+
+// Setup Section ::
 const app = express();
 const PORT = 8080; // default port 8080
 
-const cookieParser = require("cookie-parser");
 
+
+// Use it Section ::
 app.use(cookieParser());
 app.use(
   cookieSession({
@@ -17,12 +22,13 @@ app.use(
     keys: ["key1", "key2"],
   })
 );
-
-const bcrypt = require("bcryptjs");
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+
+
+///////////////////////////////////////////////////////////////////
+// All the DB Section ::
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -32,16 +38,6 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
   },
-};
-
-const urlsForUser = (id) => {
-  let urlPair = {};
-  for (const [key, value] of Object.entries(urlDatabase)) {
-    if (id === value.userID) {
-      urlPair[key] = value.longURL;
-    }
-  }
-  return urlPair;
 };
 
 const users = {
@@ -57,23 +53,21 @@ const users = {
   },
 };
 
-// const helperGetUserByEmail = (email) => {
-//   for (const user in users) {
-//     if (users[user].email === email) {
-//       return users[user];
-//     }
-//   }
-// };
 
 
+///////////////////////////////////////////////////////////////////
+// Functions Section ::
+const urlsForUser = (id) => {
+  let urlPair = {};
+  for (const [key, value] of Object.entries(urlDatabase)) {
+    if (id === value.userID) {
+      urlPair[key] = value.longURL;
+    }
+  }
+  return urlPair;
+};
 
-
-
-
-
-
-
-const generateRandomString = function () {
+const generateRandomString = function() {
   const arr = [
     "d87s8d",
     "df923j",
@@ -103,6 +97,10 @@ const generateRandomString = function () {
   return arr[roundNumber];
 };
 
+
+
+///////////////////////////////////////////////////////////////////
+// All my Routes Section ::
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -115,6 +113,9 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+
+
+// Urls ::
 app.get("/urls", (req, res) => {
   const userId = req.session.id;
   const user = users[userId];
@@ -133,6 +134,9 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortUrl}`);
 });
 
+
+
+// New URLs ::
 app.get("/urls/new", (req, res) => {
   const userId = req.session.id;
   const user = users[userId];
@@ -145,6 +149,9 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+
+
+// Generate a ShortURLs ::
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session.id;
   const user = users[userId];
@@ -190,6 +197,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+
+
+// Login ::
 app.get("/login", (req, res) => {
   const templateVars = { urls: urlDatabase, user: null };
   res.render("urls_login", templateVars);
@@ -219,12 +229,18 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+
+
+// LogOut ::
 app.post("/logout", (req, res) => {
   req.session = null;
 
   res.redirect("/urls");
 });
 
+
+
+// Register ::
 app.get("/register", (req, res) => {
   const templateVars = { urls: urlDatabase, user: null };
   res.render("urls_register", templateVars);
@@ -260,10 +276,9 @@ app.post("/register", (req, res) => {
   res.redirect("/login");
 });
 
+
+
+// Port ::
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
-// module.exports = { users };
