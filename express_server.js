@@ -1,18 +1,21 @@
 const bodyParser = require("body-parser");
+const cookieSession = require("cookie-session");
 
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
 const cookieParser = require("cookie-parser");
+
 app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1", "key2"],
+  })
+);
 
-
-const bcrypt = require('bcryptjs');
-
-
-
-
+const bcrypt = require("bcryptjs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -60,28 +63,33 @@ const helperGetUserByEmail = (email) => {
 };
 
 const generateRandomString = function () {
-  const arr = ["d87s8d", "df923j", "345gfg", "345gdf", "567ytr", "34fdsf"];
+  const arr = [
+    "d87s8d",
+    "df923j",
+    "345gfg",
+    "345gdf",
+    "567ytr",
+    "34fdsf",
+    "34dfsf",
+    "34fknd",
+    "34sskf",
+    "34f32f",
+    "3dfdsf",
+    "34fsds",
+    "34fdsf",
+    "3d234f",
+    "34f5sf",
+    "df3fds",
+    "sd3dsf",
+    "756hsf",
+    "sdf345",
+    "344fds",
+  ];
 
-  let randomNum = Math.random() * 6;
+  let randomNum = Math.random() * 20;
   let roundNumber = Math.floor(randomNum);
 
-  switch (roundNumber) {
-  case 0:
-    return arr[0];
-  case 1:
-    return arr[1];
-  case 2:
-    return arr[2];
-  case 3:
-    return arr[3];
-  case 4:
-    return arr[4];
-  case 5:
-    return arr[5];
-
-  default:
-    break;
-  }
+  return arr[roundNumber];
 };
 
 app.get("/", (req, res) => {
@@ -97,7 +105,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.id;
   const user = users[userId];
   const templateVars = { urls: urlsForUser(userId), user };
 
@@ -108,14 +116,14 @@ app.post("/urls", (req, res) => {
   let newShortUrl = generateRandomString();
   urlDatabase[newShortUrl] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"],
+    userID: req.session.id,
   };
 
   res.redirect(`/urls/${newShortUrl}`);
 });
 
 app.get("/urls/new", (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.id;
   const user = users[userId];
   const templateVars = { user };
 
@@ -127,7 +135,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.id;
   const user = users[userId];
 
   if (!userId) {
@@ -156,7 +164,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: newLongURL,
-    userID: req.cookies["user_id"],
+    userID: req.session.id,
   };
   res.redirect("/urls");
 });
@@ -193,16 +201,15 @@ app.post("/login", (req, res) => {
     return res.status(403).send("<h1>Email doesn't correct</h1>");
   }
 
-  if (bcrypt.compareSync(body.password, user.password)) {
-    res.cookie("user_id", user.id);
-    res.redirect("/urls");
-  } else {
+  if (!bcrypt.compareSync(body.password, user.password)) {
     return res.status(403).send("<h1>Password is incorrect</h1>");
   }
+  req.session.id = user.id;
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id", req.body.id);
+  req.session = null;
 
   res.redirect("/urls");
 });
@@ -211,11 +218,6 @@ app.get("/register", (req, res) => {
   const templateVars = { urls: urlDatabase, user: null };
   res.render("urls_register", templateVars);
 });
-
-
-
-
-
 
 app.post("/register", (req, res) => {
   let newUserId = generateRandomString();
@@ -232,7 +234,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("<h1>Please try again</h1>");
   }
 
-  if (newUser.password === "") {
+  if (bcrypt.compareSync("", newUser.password)) {
     return res.status(400).send("<h1>Please try again</h1>");
   }
 
@@ -241,8 +243,6 @@ app.post("/register", (req, res) => {
       .status(400)
       .send("<h1>Email exists already! 400 status code</h1>");
   }
-
-  
 
   users[newUserId] = newUser;
 
