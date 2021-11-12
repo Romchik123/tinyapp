@@ -2,6 +2,9 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 
 const express = require("express");
+
+const { helperGetUserByEmail } = require("./helpers");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -54,13 +57,21 @@ const users = {
   },
 };
 
-const helperGetUserByEmail = (email) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-};
+// const helperGetUserByEmail = (email) => {
+//   for (const user in users) {
+//     if (users[user].email === email) {
+//       return users[user];
+//     }
+//   }
+// };
+
+
+
+
+
+
+
+
 
 const generateRandomString = function () {
   const arr = [
@@ -195,7 +206,7 @@ app.post("/login", (req, res) => {
     return res.status(400).send("<h1>Please try again</h1>");
   }
 
-  const user = helperGetUserByEmail(body.email);
+  const user = helperGetUserByEmail(body.email, users);
 
   if (!user) {
     return res.status(403).send("<h1>Email doesn't correct</h1>");
@@ -238,7 +249,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("<h1>Please try again</h1>");
   }
 
-  if (helperGetUserByEmail(newUser.email)) {
+  if (helperGetUserByEmail(newUser.email, users)) {
     return res
       .status(400)
       .send("<h1>Email exists already! 400 status code</h1>");
@@ -252,3 +263,7 @@ app.post("/register", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+
+// module.exports = { users };
